@@ -1,0 +1,28 @@
+let serverIp = 'localhost:3000';
+async function sendToServer(text) {
+    try {
+        const response = await fetch(`http://${serverIp}/setClipboard`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text })
+        });
+        
+        const data = await response.json();
+        console.log('Successfully sent to server:', text);
+    } catch (error) {
+        console.error('Error sending to server:', error);
+    }
+}
+
+
+document.addEventListener('copy', async (e) => {
+    // Get the selected text
+    const selectedText = window.getSelection().toString();
+    
+    if (selectedText) {
+        // Send the copied text to the server
+        await sendToServer(selectedText);
+    }
+});
