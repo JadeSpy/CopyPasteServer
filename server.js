@@ -1,6 +1,9 @@
-import express from 'express';
-import clipboard from 'clipboardy';
-import cors from 'cors';
+const express = require('express');
+const clipboard = require('clipboardy');
+const cors = require('cors');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 
@@ -10,8 +13,14 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+// Load SSL certificate and key
+const options = {
+  key: fs.readFileSync(path.join(__dirname, 'localhost-key.pem')), // or 'server.key'
+  cert: fs.readFileSync(path.join(__dirname, 'localhost.pem')) // or 'server.cert'
+};
+
 // POST endpoint to set clipboard
-app.post('/setClipboard', async (req, res) => {
+app.post('/setClipboard', (req, res) => {
   try {
     const { text } = req.body;
     
@@ -20,7 +29,7 @@ app.post('/setClipboard', async (req, res) => {
     }
 
     clipboard.writeSync(text);
-    console.log("set clipboard to", text)
+    console.log("Set clipboard to:", text);
     res.json({ success: true, message: 'Clipboard content updated' });
   } catch (error) {
     console.error('Error setting clipboard:', error);
@@ -29,6 +38,8 @@ app.post('/setClipboard', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+// Start the HTTPS server
+https.createServer(options, app).listen(PORT, () => {
+  console.log(`HTTPS server running at https://localhost:${PORT}`);
 });
